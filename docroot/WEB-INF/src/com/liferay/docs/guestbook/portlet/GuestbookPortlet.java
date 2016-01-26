@@ -3,7 +3,17 @@ package com.liferay.docs.guestbook.portlet;
 
 
 import com.liferay.docs.guestbook.model.Entry;
+import com.liferay.docs.guestbook.model.Guestbook;
+import com.liferay.docs.guestbook.service.EntryLocalServiceUtil;
+import com.liferay.docs.guestbook.service.GuestbookLocalServiceUtil;
+import com.liferay.docs.guestbook.service.impl.EntryLocalServiceImpl;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.util.bridges.mvc.MVCPortlet;
 
 import java.io.IOException;
@@ -27,7 +37,7 @@ import javax.portlet.ValidatorException;
  */	
 public class GuestbookPortlet extends MVCPortlet {
  
-	public void addEntry(ActionRequest request, ActionResponse response){
+	public void addEntry1(ActionRequest request, ActionResponse response){
 		try{
 			PortletPreferences prefs = request.getPreferences();
 			String[] guestbookEntries = prefs.getValues("guestbook-entries", new String[1]);
@@ -74,12 +84,36 @@ public class GuestbookPortlet extends MVCPortlet {
 	private List<Entry> parseEntries(String[] guestbookEntries){
 		ArrayList<Entry> entries = new ArrayList();
 		
-		for(String entry : guestbookEntries){
-			String[] parts = entry.split("::", 2);
-			Entry gbEntry = new Entry(parts[0], parts[1]);
-			entries.add(gbEntry);
-		}
+//		for(String entry : guestbookEntries){
+//			String[] parts = entry.split("::", 2);
+//			Entry gbEntry = new Entry(parts[0], parts[1]);
+//			entries.add(gbEntry);
+//		}
 		return entries;
+	}
+	
+	public void addGuestBook(ActionRequest request, ActionResponse response)throws PortalException, SystemException{
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(Guestbook.class.getName(), request);
+		String name = ParamUtil.getString(request, "name");
+		try{
+			GuestbookLocalServiceUtil.addGuestbook(serviceContext.getUserId(),name, serviceContext);
+			SessionMessages.add(request, "guestbookAdded");
+		}catch(Exception e){
+			SessionErrors.add(request, e.getClass().getName());
+			response.setRenderParameter("mvcPath", "/html/guestbook/edit_guestbook.jsp");
+		}
+	}
+	
+	public void addEntry(ActionRequest request, ActionResponse response)throws PortalException, SystemException{
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(Entry.class.getName(), request);
+		String userName = ParamUtil.getString(request, "name");
+		String email = ParamUtil.getString(request, "email");
+		String message = ParamUtil.getString(request, "message");
+		String guestbookId = ParamUtil.getString(request, "guestbookId");
+		
+//		try{
+//			EntryLocalServiceUtil.addEntry(serviceContext.getUserId(), guestbookId, userName, email, message, serviceContext);
+//		}
 	}
 	
 }
